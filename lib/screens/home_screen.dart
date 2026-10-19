@@ -205,8 +205,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // ويدجت عناصر السور في القائمة
-  Widget _buildSurahItem(int number, String name, String details) {
+    // ويدجت عناصر السور في القائمة (قم بتحديثها بهذا الشكل الكامل)
+  Widget _buildSurahItem(int number, String name, String details, BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
@@ -248,10 +248,17 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
-          // زر التشغيل السريع
-          const Icon(Icons.play_circle_outline, color: Color(0xFFD4AF37), size: 28),
+          // <-- أضف زر التشغيل هنا مع أمر الانتقال لشاشة القرآن الكريم:
+          IconButton(
+            icon: const Icon(Icons.play_circle_fill, color: Color(0xFFD4AF37), size: 32),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const QuranScreen()),
+              );
+            },
+          ),
         ],
       ),
     );
   }
-}
