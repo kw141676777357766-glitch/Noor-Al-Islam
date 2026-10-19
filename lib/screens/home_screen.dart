@@ -1,4 +1,14 @@
 import 'package:flutter/material.dart';
+// <-- أضف الاستيرادات هنا في أعلى الملف تماماً:
+import 'quran_screen.dart';
+import 'adhkar_screen.dart';
+import 'misbaha_screen.dart';
+import 'prophets_screen.dart';
+import 'prayer_screen.dart';
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+  // ... باقي الكود
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
