@@ -18,11 +18,11 @@ jobs:
           flutter-version: '3.19.x'
           channel: 'stable'
 
-      # تثبيت الاعتمادات والحزم
+      # تثبيت الحزم باستخدام فلاتر
       - name: Install dependencies
         run: flutter pub get
 
-      # توليد أيقونة التطبيق تلقائياً عبر الحزمة التي أضفناها
+      # توليد أيقونة التطبيق تلقائياً
       - name: Generate Icon
         run: flutter pub run flutter_launcher_icons
 
