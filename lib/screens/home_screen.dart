@@ -58,18 +58,28 @@ class HomeScreen extends StatelessWidget {
 
               // الأزرار الأربعة الرئيسية (شبكة 2x2)
               GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 2.2,
-                children: [
-                  _buildMainCard(Icons.auto_awesome, 'الأذكار', () {}),
-                  _buildMainCard(Icons.track_changes, 'المسبحة', () {}),
-                  _buildMainCard(Icons.menu_book, 'قصص الأنبياء', () {}),
-                  _buildMainCard(Icons.explore, 'الصلاة والقبلة', () {}),
-                ],
+  crossAxisCount: 2,
+  shrinkWrap: true,
+  physics: const NeverScrollableScrollPhysics(),
+  crossAxisSpacing: 12,
+  mainAxisSpacing: 12,
+  childAspectRatio: 2.2,
+  children: [
+    // <-- أضفها هنا داخل شبكة الأزرار الأربعة:
+    _buildMainCard(Icons.auto_awesome, 'الأذكار', () {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const AdhkarScreen()));
+    }),
+    _buildMainCard(Icons.track_changes, 'المسبحة', () {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const MisbahaScreen()));
+    }),
+    _buildMainCard(Icons.menu_book, 'قصص الأنبياء', () {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const ProphetsScreen()));
+    }),
+    _buildMainCard(Icons.explore, 'الصلاة والقبلة', () {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const PrayerScreen()));
+    }),
+  ],
+),
               ),
               const SizedBox(height: 20),
 
