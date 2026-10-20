@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_compass/flutter_compass.dart';
+import 'dart:math' as math;
 
 class PrayerScreen extends StatefulWidget {
   const PrayerScreen({super.key});
@@ -14,7 +16,7 @@ class _PrayerScreenState extends State<PrayerScreen> {
     {
       'city': 'صنعاء',
       'country': 'اليمن',
-      'qiblaAngle': 0.38,
+      'qiblaHeading': 338.0, // اتجاه القبلة بالدرجات من الشمال
       'times': {
         'الفجر': '04:35',
         'الشروق': '05:52',
@@ -27,7 +29,7 @@ class _PrayerScreenState extends State<PrayerScreen> {
     {
       'city': 'مكة المكرمة',
       'country': 'السعودية',
-      'qiblaAngle': 0.0,
+      'qiblaHeading': 0.0,
       'times': {
         'الفجر': '04:42',
         'الشروق': '06:01',
@@ -40,7 +42,7 @@ class _PrayerScreenState extends State<PrayerScreen> {
     {
       'city': 'القاهرة',
       'country': 'مصر',
-      'qiblaAngle': 2.35,
+      'qiblaHeading': 135.0,
       'times': {
         'الفجر': '04:50',
         'الشروق': '06:15',
@@ -53,7 +55,7 @@ class _PrayerScreenState extends State<PrayerScreen> {
     {
       'city': 'دبي',
       'country': 'الإمارات',
-      'qiblaAngle': 4.71,
+      'qiblaHeading': 260.0,
       'times': {
         'الفجر': '05:02',
         'الشروق': '06:20',
@@ -69,6 +71,7 @@ class _PrayerScreenState extends State<PrayerScreen> {
   Widget build(BuildContext context) {
     final currentCityData = worldCities[selectedCityIndex];
     final Map<String, String> times = Map<String, String>.from(currentCityData['times']);
+    final double targetQibla = currentCityData['qiblaHeading'];
 
     return Scaffold(
       appBar: AppBar(
@@ -91,48 +94,44 @@ class _PrayerScreenState extends State<PrayerScreen> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.3)),
               ),
-              child: Column(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  const Row(
                     children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.location_city, color: Color(0xFFD4AF37), size: 22),
-                          SizedBox(width: 8),
-                          Text(
-                            'اختر المدينة',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Cairo',
-                            ),
-                          ),
-                        ],
-                      ),
-                      DropdownButton<int>(
-                        value: selectedCityIndex,
-                        dropdownColor: const Color(0xFF132A22),
-                        icon: const Icon(Icons.arrow_drop_down, color: Color(0xFFD4AF37)),
-                        style: const TextStyle(color: Colors.white, fontFamily: 'Cairo'),
-                        underline: Container(height: 1, color: const Color(0xFFD4AF37)),
-                        items: List.generate(worldCities.length, (index) {
-                          return DropdownMenuItem<int>(
-                            value: index,
-                            child: Text(
-                              '${worldCities[index]['city']}, ${worldCities[index]['country']}',
-                              style: const TextStyle(fontFamily: 'Cairo', color: Colors.white),
-                            ),
-                          );
-                        }),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedCityIndex = value!;
-                          });
-                        },
+                      Icon(Icons.location_city, color: Color(0xFFD4AF37), size: 22),
+                      SizedBox(width: 8),
+                      Text(
+                        'اختر المدينة',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Cairo',
+                        ),
                       ),
                     ],
+                  ),
+                  DropdownButton<int>(
+                    value: selectedCityIndex,
+                    dropdownColor: const Color(0xFF132A22),
+                    icon: const Icon(Icons.arrow_drop_down, color: Color(0xFFD4AF37)),
+                    style: const TextStyle(color: Colors.white, fontFamily: 'Cairo'),
+                    underline: Container(height: 1, color: const Color(0xFFD4AF37)),
+                    items: List.generate(worldCities.length, (index) {
+                      return DropdownMenuItem<int>(
+                        value: index,
+                        child: Text(
+                          '${worldCities[index]['city']}, ${worldCities[index]['country']}',
+                          style: const TextStyle(fontFamily: 'Cairo', color: Colors.white),
+                        ),
+                      );
+                    }),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedCityIndex = value!;
+                      });
+                    },
                   ),
                 ],
               ),
@@ -202,17 +201,17 @@ class _PrayerScreenState extends State<PrayerScreen> {
               child: Column(
                 children: [
                   const Text(
-                    'اتجاه القبلة (الكعبة المشرفة)',
+                    'اتجاه القبلة الحية (تحرك مع الجوال)',
                     style: TextStyle(
                       color: Color(0xFFD4AF37),
-                      fontSize: 18,
+                      fontSize: 17,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Cairo',
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'يوضح اتجاه السهم نحو الكعبة المشرفة بناء على اختيارك لمدينة ${currentCityData['city']}.',
+                    'حرك هاتفك يميناً ويساراً، وسيتجه السهم مباشرة نحو الكعبة المشرفة.',
                     style: const TextStyle(
                       color: Colors.white60,
                       fontSize: 13,
@@ -222,38 +221,62 @@ class _PrayerScreenState extends State<PrayerScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
-                  Container(
-                    width: 160,
-                    height: 160,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFD4AF37), width: 3),
-                      color: const Color(0xFF0F0B1B),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFD4AF37).withOpacity(0.2),
-                          blurRadius: 15,
-                          spreadRadius: 3,
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        const Positioned(
-                          top: 10,
-                          child: Text('شمال', style: TextStyle(color: Colors.white54, fontSize: 10, fontFamily: 'Cairo')),
-                        ),
-                        Transform.rotate(
-                          angle: currentCityData['qiblaAngle'],
-                          child: const Icon(
-                            Icons.navigation,
-                            color: Color(0xFFD4AF37),
-                            size: 65,
+                  StreamBuilder<CompassEvent>(
+                    stream: FlutterCompass.events,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Text('خطأ في استشعار الحساسات: ${snapshot.error}', style: const TextStyle(color: Colors.red));
+                      }
+
+                      double? direction = snapshot.data?.heading;
+                      if (direction == null) {
+                        return const Center(
+                          child: Text(
+                            'مستشعر البوصلة غير متوفر في هذا الجهاز',
+                            style: TextStyle(color: Colors.white70, fontFamily: 'Cairo'),
                           ),
+                        );
+                      }
+
+                      // حساب زاوية دوران السهم بناءً على اتجاه الهاتف الشمالي واتجاه القبلة
+                      double compassAngle = (direction ?? 0) * (math.pi / 180);
+                      double qiblaRad = targetQibla * (math.pi / 180);
+                      double finalAngle = qiblaRad - compassAngle;
+
+                      return Container(
+                        width: 160,
+                        height: 160,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFFD4AF37), width: 3),
+                          color: const Color(0xFF0F0B1B),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFD4AF37).withOpacity(0.2),
+                              blurRadius: 15,
+                              spreadRadius: 3,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            const Positioned(
+                              top: 10,
+                              child: Text('شمال', style: TextStyle(color: Colors.white54, fontSize: 10, fontFamily: 'Cairo')),
+                            ),
+                            Transform.rotate(
+                              angle: finalAngle,
+                              child: const Icon(
+                                Icons.navigation,
+                                color: Color(0xFFD4AF37),
+                                size: 65,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
