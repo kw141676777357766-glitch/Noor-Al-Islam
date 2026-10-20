@@ -20,6 +20,11 @@ jobs:
       - name: Create Missing Platform Files
         run: flutter create . --platforms=android --project-name=noor_islam
 
+      - name: Update Android Min SDK Version
+        run: |
+          sed -i 's/minSdkVersion 19/minSdkVersion 21/g' android/app/build.gradle
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
+
       - name: Install dependencies
         run: flutter pub get
 
