@@ -14,7 +14,7 @@ class _QuranScreenState extends State<QuranScreen> {
   bool isDownloaded = false;
   bool isLoading = false;
 
-  @include
+  @override
   void initState() {
     super.initState();
     _audioPlayer = AudioPlayer();
@@ -26,7 +26,6 @@ class _QuranScreenState extends State<QuranScreen> {
     super.dispose();
   }
 
-  // دالة تشغيل وإيقاف الصوت
   Future<void> _togglePlayPause() async {
     try {
       if (isPlaying) {
@@ -34,7 +33,6 @@ class _QuranScreenState extends State<QuranScreen> {
         setState(() => isPlaying = false);
       } else {
         setState(() => isLoading = true);
-        // رابط تلاوة تجريبي بصوت الشيخ مشاري العفاسي
         await _audioPlayer.setUrl('https://server8.mp3quran.net/afs/001.mp3');
         await _audioPlayer.play();
         setState(() {
@@ -50,7 +48,6 @@ class _QuranScreenState extends State<QuranScreen> {
     }
   }
 
-  // دالة تحميل السورة
   void _downloadSurah() {
     setState(() => isLoading = true);
     Future.delayed(const Duration(seconds: 2), () {
@@ -83,7 +80,6 @@ class _QuranScreenState extends State<QuranScreen> {
         color: const Color(0xFF0F0B1B),
         child: Column(
           children: [
-            // شريط التحكم بالصوت والتحميل
             Container(
               padding: const EdgeInsets.all(16),
               margin: const EdgeInsets.all(16),
@@ -95,7 +91,6 @@ class _QuranScreenState extends State<QuranScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  // زر التحميل
                   IconButton(
                     icon: Icon(
                       isDownloaded ? Icons.download_done : Icons.download,
@@ -105,7 +100,6 @@ class _QuranScreenState extends State<QuranScreen> {
                     onPressed: isDownloaded ? null : _downloadSurah,
                     tooltip: 'تحميل السورة',
                   ),
-                  // زر التشغيل الرئيسي
                   FloatingActionButton(
                     backgroundColor: const Color(0xFFD4AF37),
                     onPressed: isLoading ? null : _togglePlayPause,
@@ -113,7 +107,6 @@ class _QuranScreenState extends State<QuranScreen> {
                         ? const CircularProgressIndicator(color: Colors.black)
                         : Icon(isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.black, size: 32),
                   ),
-                  // القارئ الحالي
                   const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -124,7 +117,6 @@ class _QuranScreenState extends State<QuranScreen> {
                 ],
               ),
             ),
-            // صفحة القرآن المزخرفة وعرض الآيات
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -136,8 +128,8 @@ class _QuranScreenState extends State<QuranScreen> {
                 ),
                 child: SingleChildScrollView(
                   child: Column(
-                    children: [
-                      const Text(
+                    children: const [
+                      Text(
                         'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
                         style: TextStyle(
                           color: Color(0xFFD4AF37),
@@ -147,9 +139,9 @@ class _QuranScreenState extends State<QuranScreen> {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ (1) الرَّحْمَٰنِ الرَّحِيمِ (2) مَالِكِ يَوْمِ الدِّينِ (3) إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ (4) اهhdِنَا الصِّرَاطَ الْمُسْتَقِيمَ (5) صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ (6)',
+                      SizedBox(height: 20),
+                      Text(
+                        'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ (1) الرَّحْمَٰنِ الرَّحِيمِ (2) مَالِكِ يَوْمِ الدِّينِ (3) إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ (4) اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ (5) صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ (6)',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 20,
