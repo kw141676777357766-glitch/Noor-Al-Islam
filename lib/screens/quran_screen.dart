@@ -2,7 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 
 class QuranScreen extends StatefulWidget {
-  const QuranScreen({super.key});
+  final int surahNumber;
+  final String surahName;
+  final String reciterName;
+
+  const QuranScreen({
+    super.key,
+    required this.surahNumber,
+    required this.surahName,
+    required this.reciterName,
+  });
 
   @override
   State<QuranScreen> createState() => _QuranScreenState();
@@ -33,7 +42,11 @@ class _QuranScreenState extends State<QuranScreen> {
         setState(() => isPlaying = false);
       } else {
         setState(() => isLoading = true);
-        await _audioPlayer.setUrl('https://server8.mp3quran.net/afs/001.mp3');
+        // بناء رابط تلاوة مباشر ومضبوط لكل سورة بناءً على رقمها (3 خانات مثل 001.mp3)
+        String formattedNumber = widget.surahNumber.toString().padLeft(3, '0');
+        String audioUrl = 'https://server8.mp3quran.net/afs/$formattedNumber.mp3';
+
+        await _audioPlayer.setUrl(audioUrl);
         await _audioPlayer.play();
         setState(() {
           isPlaying = true;
@@ -56,9 +69,9 @@ class _QuranScreenState extends State<QuranScreen> {
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم تحميل السورة بنجاح للاستماع بدون إنترنت', style: TextStyle(fontFamily: 'Cairo')),
-          backgroundColor: Color(0xFF132A22),
+        SnackBar(
+          content: Text('تم تحميل سورة ${widget.surahName} بنجاح للاستماع بدون إنترنت', style: const TextStyle(fontFamily: 'Cairo')),
+          backgroundColor: const Color(0xFF132A22),
         ),
       );
     });
@@ -68,9 +81,9 @@ class _QuranScreenState extends State<QuranScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'سورة الفاتحة',
-          style: TextStyle(fontFamily: 'Cairo', color: Color(0xFFD4AF37), fontWeight: FontWeight.bold),
+        title: Text(
+          'سورة ${widget.surahName}',
+          style: const TextStyle(fontFamily: 'Cairo', color: Color(0xFFD4AF37), fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color(0xFF132A22),
         iconTheme: const IconThemeData(color: Color(0xFFD4AF37)),
@@ -107,11 +120,11 @@ class _QuranScreenState extends State<QuranScreen> {
                         ? const CircularProgressIndicator(color: Colors.black)
                         : Icon(isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.black, size: 32),
                   ),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('القارئ:', style: TextStyle(color: Colors.white54, fontSize: 11, fontFamily: 'Cairo')),
-                      Text('مشاري العفاسي', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
+                      const Text('القارئ:', style: TextStyle(color: Colors.white54, fontSize: 11, fontFamily: 'Cairo')),
+                      Text(widget.reciterName, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
                     ],
                   ),
                 ],
@@ -128,23 +141,26 @@ class _QuranScreenState extends State<QuranScreen> {
                 ),
                 child: SingleChildScrollView(
                   child: Column(
-                    children: const [
-                      Text(
-                        'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-                        style: TextStyle(
-                          color: Color(0xFFD4AF37),
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Cairo',
+                    children: [
+                      // إظهار البسملة في كل السور عدا سورة التوبة (رقم 9)
+                      if (widget.surahNumber != 9) ...[
+                        const Text(
+                          'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                          style: TextStyle(
+                            color: Color(0xFFD4AF37),
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Cairo',
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 20),
+                        const SizedBox(height: 20),
+                      ],
                       Text(
-                        'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ (1) الرَّحْمَٰنِ الرَّحِيمِ (2) مَالِكِ يَوْمِ الدِّينِ (3) إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ (4) اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ (5) صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ (6)',
-                        style: TextStyle(
+                        'آيات سورة ${widget.surahName} المباركة (رقم ${widget.surahNumber})\n\n[هنا يتم عرض نص الآيات القرآنية الكاملة بخط العثماني المزخرف والمرتل بصوت القارئ ${widget.reciterName}]',
+                        style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 20,
+                          fontSize: 18,
                           height: 2.2,
                           fontFamily: 'Cairo',
                         ),
