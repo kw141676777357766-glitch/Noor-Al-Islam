@@ -18,7 +18,7 @@ jobs:
           channel: 'stable'
 
       - name: Create Missing Platform Files
-        run: flutter create . --platforms=android
+        run: flutter create . --platforms=android --project-name=noor_islam
 
       - name: Install dependencies
         run: flutter pub get
