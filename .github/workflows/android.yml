@@ -1,0 +1,42 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ] # أو ضع اسم الفرع عندك مثل master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. إعداد بيئة فلاتر الرسمية
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.x'
+          channel: 'stable'
+
+      # 2. إنشاء مجلدات المنصات (بما فيها android) إذا كانت غير موجودة!
+      - name: Create Missing Platform Files
+        run: flutter create . --platforms=android
+
+      # 3. تثبيت الحزم والاعتمادات
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 4. توليد أيقونة التطبيق تلقائياً
+      - name: Generate Icon
+        run: flutter pub run flutter_launcher_icons
+
+      # 5. بناء وتوليد ملف الـ APK النهائي بنجاح
+      - name: Build APK
+        run: flutter build apk --release
+
+      # 6. رفع ملف الـ APK ليصبح جاهزاً للتحميل
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk
