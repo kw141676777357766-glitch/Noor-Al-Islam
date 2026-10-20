@@ -220,7 +220,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 Text(
                   details,
-                  style: const TextStyle(color: Colors.white64, fontSize: 12),
+                  style: const TextStyle(color: Colors.white60, fontSize: 12),
                 ),
               ],
             ),
