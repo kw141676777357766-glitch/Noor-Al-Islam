@@ -17,6 +17,8 @@ dependencies:
   flutter_compass: ^0.8.1
   audio_service: ^0.18.15
   flutter_local_notifications: ^17.2.0
+  http: ^1.2.2
+  path_provider: ^2.1.4
 
 flutter:
   uses-material-design: true
