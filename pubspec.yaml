@@ -25,6 +25,7 @@ flutter:
 
   assets:
     - assets/data/prophets.json
+    - assets/data/quran.json
 
 dev_dependencies:
   flutter_test:
