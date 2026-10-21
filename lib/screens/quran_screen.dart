@@ -506,7 +506,7 @@ class _QuranScreenState extends State<QuranScreen> {
         ),
         textAlign: TextAlign.right,
         textDirection: TextDirection.rtl,
-      ),
-    ],
+      ],
   );
   }
+      }
