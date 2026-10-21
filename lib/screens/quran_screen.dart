@@ -489,24 +489,11 @@ class _QuranScreenState extends State<QuranScreen> {
 
     return ListView(
       children: [
-        // البسملة
-        if (widget.surahNumber != 9 &&
-            widget.surahNumber != 1)
-          const Center(
-            child: Text(
-              'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color(0xFFD4AF37),
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Cairo',
-                height: 2,
+        // مسافة قبل الآيات
+       const SizedBox(height: 16),
               ),
             ),
           ),
-
-        const SizedBox(height: 16),
 
         // الآيات
         Text.rich(
