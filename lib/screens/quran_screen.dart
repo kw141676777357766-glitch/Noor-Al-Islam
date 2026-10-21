@@ -453,68 +453,63 @@ class _QuranScreenState extends State<QuranScreen> {
   }
 
   Widget _buildQuranContent() {
-    if (isLoadingAyahs) {
-      return const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFFD4AF37),
-        ),
-      );
-    }
-
-    if (surah == null) {
-      return const Center(
-        child: Text(
-          'تعذر العثور على هذه السورة.',
-          style: TextStyle(
-            color: Colors.white,
-            fontFamily: 'Cairo',
-            fontSize: 16,
-          ),
-        ),
-      );
-    }
-
-    if (surah!.ayahs.isEmpty) {
-      return const Center(
-        child: Text(
-          'لا توجد آيات لهذه السورة.',
-          style: TextStyle(
-            color: Colors.white,
-            fontFamily: 'Cairo',
-            fontSize: 16,
-          ),
-        ),
-      );
-    }
-
-    return ListView(
-      children: [
-        // مسافة قبل الآيات
-       const SizedBox(height: 16),
-              ),
-            ),
-          ),
-
-        // الآيات
-        Text.rich(
-          TextSpan(
-            children: surah!.ayahs.map((ayah) {
-              return TextSpan(
-                text:
-                    '${ayah.text} ﴿${ayah.number}﴾ ',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  height: 2.2,
-                  fontFamily: 'Cairo',
-                ),
-              );
-            }).toList(),
-          ),
-          textAlign: TextAlign.right,
-          textDirection: TextDirection.rtl,
-        ),
-      ],
+  if (isLoadingAyahs) {
+    return const Center(
+      child: CircularProgressIndicator(
+        color: Color(0xFFD4AF37),
+      ),
     );
   }
-}
+
+  if (surah == null) {
+    return const Center(
+      child: Text(
+        'تعذر العثور على هذه السورة.',
+        style: TextStyle(
+          color: Colors.white,
+          fontFamily: 'Cairo',
+          fontSize: 16,
+        ),
+      ),
+    );
+  }
+
+  if (surah!.ayahs.isEmpty) {
+    return const Center(
+      child: Text(
+        'لا توجد آيات لهذه السورة.',
+        style: TextStyle(
+          color: Colors.white,
+          fontFamily: 'Cairo',
+          fontSize: 16,
+        ),
+      ),
+    );
+  }
+
+  return ListView(
+    children: [
+      // مسافة قبل الآيات
+      const SizedBox(height: 16),
+
+      // الآيات
+      Text.rich(
+        TextSpan(
+          children: surah!.ayahs.map((ayah) {
+            return TextSpan(
+              text: '${ayah.text} ﴿${ayah.number}﴾ ',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                height: 2.2,
+                fontFamily: 'Cairo',
+              ),
+            );
+          }).toList(),
+        ),
+        textAlign: TextAlign.right,
+        textDirection: TextDirection.rtl,
+      ),
+    ],
+  );
+  }
