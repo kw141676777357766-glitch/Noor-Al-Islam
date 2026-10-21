@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 class QuranScreen extends StatefulWidget {
   final int surahNumber;
@@ -25,6 +27,7 @@ class _QuranScreenState extends State<QuranScreen> {
   bool isDownloaded = false;
   bool isLoadingAudio = false;
   bool isLoadingAyahs = true;
+  double downloadProgress = 0.0;
   List<dynamic> ayahsList = [];
 
   @override
@@ -32,6 +35,7 @@ class _QuranScreenState extends State<QuranScreen> {
     super.initState();
     _audioPlayer = AudioPlayer();
     _fetchSurahAyahs();
+    _checkIfDownloaded();
   }
 
   @override
@@ -40,7 +44,23 @@ class _QuranScreenState extends State<QuranScreen> {
     super.dispose();
   }
 
-  // جلب الآيات الحقيقية للسورة من API القرآن الكريم المعتمد
+  // التحقق هل السورة محملة مسبقاً في ذاكرة الهاتف للاستماع بدون إنترنت
+  Future<void> _checkIfDownloaded() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      String fileName = 'surah_${widget.surahNumber}_${widget.reciterName.hashCode}.mp3';
+      File file = File('${directory.path}/$fileName');
+      if (await file.exists()) {
+        setState(() {
+          isDownloaded = true;
+        });
+      }
+    } catch (e) {
+      // خطأ صامت
+    }
+  }
+
+  // جلب الآيات الحقيقية للسورة من API القرآن الكريم المعتمد بالترتيب
   Future<void> _fetchSurahAyahs() async {
     try {
       final response = await http.get(
@@ -77,6 +97,61 @@ class _QuranScreenState extends State<QuranScreen> {
     }
   }
 
+  // تحميل وحفظ ملف الصوت محلياً في الجهاز للعمل بدون إنترنت
+  Future<void> _downloadAndSaveAudio() async {
+    setState(() {
+      isLoadingAudio = true;
+      downloadProgress = 0.0;
+    });
+
+    try {
+      String serverUrl = _getReciterServerUrl(widget.reciterName);
+      String formattedNumber = widget.surahNumber.toString().padLeft(3, '0');
+      String audioUrl = '$serverUrl$formattedNumber.mp3';
+
+      final directory = await getApplicationDocumentsDirectory();
+      String fileName = 'surah_${widget.surahNumber}_${widget.reciterName.hashCode}.mp3';
+      File file = File('${directory.path}/$fileName');
+
+      var client = http.Client();
+      var request = http.Request('GET', Uri.parse(audioUrl));
+      var response = await client.send(request);
+
+      int contentLength = response.contentLength ?? 0;
+      int downloadedBytes = 0;
+
+      List<int> bytes = [];
+      await response.stream.forEach((chunk) {
+        bytes.addAll(chunk);
+        downloadedBytes += chunk.length;
+        if (contentLength > 0) {
+          setState(() {
+            downloadProgress = downloadedBytes / contentLength;
+          });
+        }
+      });
+
+      await file.writeAsBytes(bytes);
+
+      setState(() {
+        isDownloaded = true;
+        isLoadingAudio = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم تحميل وحفظ سورة ${widget.surahName} بصوت ${widget.reciterName} بنجاح للعمل بدون إنترنت!', style: const TextStyle(fontFamily: 'Cairo')),
+          backgroundColor: const Color(0xFF132A22),
+        ),
+      );
+    } catch (e) {
+      setState(() => isLoadingAudio = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('فشل التحميل، تأكد من اتصال الإنترنت: $e', style: const TextStyle(fontFamily: 'Cairo'))),
+      );
+    }
+  }
+
   Future<void> _togglePlayPause() async {
     try {
       if (isPlaying) {
@@ -84,12 +159,22 @@ class _QuranScreenState extends State<QuranScreen> {
         setState(() => isPlaying = false);
       } else {
         setState(() => isLoadingAudio = true);
-        
-        String serverUrl = _getReciterServerUrl(widget.reciterName);
-        String formattedNumber = widget.surahNumber.toString().padLeft(3, '0');
-        String audioUrl = '$serverUrl$formattedNumber.mp3';
 
-        await _audioPlayer.setUrl(audioUrl);
+        final directory = await getApplicationDocumentsDirectory();
+        String fileName = 'surah_${widget.surahNumber}_${widget.reciterName.hashCode}.mp3';
+        File file = File('${directory.path}/$fileName');
+
+        if (await file.exists()) {
+          // تشغيل من ملف الهاتف المحلي (بدون إنترنت نهائياً)
+          await _audioPlayer.setFilePath(file.path);
+        } else {
+          // تشغيل عبر الإنترنت مباشرة إذا لم يتم التحميل بعد
+          String serverUrl = _getReciterServerUrl(widget.reciterName);
+          String formattedNumber = widget.surahNumber.toString().padLeft(3, '0');
+          String audioUrl = '$serverUrl$formattedNumber.mp3';
+          await _audioPlayer.setUrl(audioUrl);
+        }
+
         await _audioPlayer.play();
         setState(() {
           isPlaying = true;
@@ -99,25 +184,9 @@ class _QuranScreenState extends State<QuranScreen> {
     } catch (e) {
       setState(() => isLoadingAudio = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('خطأ في تشغيل تلاوة القارئ: $e', style: const TextStyle(fontFamily: 'Cairo'))),
+        SnackBar(content: Text('خطأ في تشغيل التلاوة: $e', style: const TextStyle(fontFamily: 'Cairo'))),
       );
     }
-  }
-
-  void _downloadSurah() {
-    setState(() => isLoadingAudio = true);
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() {
-        isDownloaded = true;
-        isLoadingAudio = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم بنجاح تحميل سورة ${widget.surahName} بصوت ${widget.reciterName} للاستماع بدون إنترنت', style: const TextStyle(fontFamily: 'Cairo')),
-          backgroundColor: const Color(0xFF132A22),
-        ),
-      );
-    });
   }
 
   @override
@@ -145,36 +214,53 @@ class _QuranScreenState extends State<QuranScreen> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.3)),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+              child: Column(
                 children: [
-                  IconButton(
-                    icon: Icon(
-                      isDownloaded ? Icons.download_done : Icons.download,
-                      color: isDownloaded ? Colors.greenAccent : const Color(0xFFD4AF37),
-                      size: 28,
-                    ),
-                    onPressed: isDownloaded ? null : _downloadSurah,
-                    tooltip: 'تحميل السورة',
-                  ),
-                  FloatingActionButton(
-                    backgroundColor: const Color(0xFFD4AF37),
-                    onPressed: isLoadingAudio ? null : _togglePlayPause,
-                    child: isLoadingAudio
-                        ? const CircularProgressIndicator(color: Colors.black)
-                        : Icon(isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.black, size: 32),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      const Text('القارئ الحالي:', style: TextStyle(color: Colors.white54, fontSize: 10, fontFamily: 'Cairo')),
-                      Text(widget.reciterName, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
+                      IconButton(
+                        icon: Icon(
+                          isDownloaded ? Icons.download_done : Icons.download,
+                          color: isDownloaded ? Colors.greenAccent : const Color(0xFFD4AF37),
+                          size: 28,
+                        ),
+                        onPressed: isDownloaded ? null : _downloadAndSaveAudio,
+                        tooltip: 'تحميل السورة للاستماع بدون إنترنت',
+                      ),
+                      FloatingActionButton(
+                        backgroundColor: const Color(0xFFD4AF37),
+                        onPressed: isLoadingAudio ? null : _togglePlayPause,
+                        child: isLoadingAudio
+                            ? const CircularProgressIndicator(color: Colors.black)
+                            : Icon(isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.black, size: 32),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('القارئ الحالي:', style: TextStyle(color: Colors.white54, fontSize: 10, fontFamily: 'Cairo')),
+                          Text(widget.reciterName, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
+                        ],
+                      ),
                     ],
                   ),
+                  if (isLoadingAudio && downloadProgress > 0) ...[
+                    const SizedBox(height: 12),
+                    LinearProgressIndicator(
+                      value: downloadProgress,
+                      backgroundColor: Colors.white24,
+                      color: const Color(0xFFD4AF37),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'جاري التحميل... ${(downloadProgress * 100).toStringAsFixed(0)}%',
+                      style: const TextStyle(color: Colors.white70, fontSize: 11, fontFamily: 'Cairo'),
+                    ),
+                  ],
                 ],
               ),
             ),
-            // عرض الآيات القرآنية الكاملة بخط واضح
+            // عرض الآيات القرآنية الكاملة مرتبة
             Expanded(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -206,7 +292,6 @@ class _QuranScreenState extends State<QuranScreen> {
                               children: ayahsList.map((ayah) {
                                 int numberInSurah = ayah['numberInSurah'];
                                 String text = ayah['text'];
-                                // إزالة البسملة المتكررة إن وجدت في أول آية من سورة الفاتحة أو غيرها
                                 if (widget.surahNumber == 1 && numberInSurah == 1) {
                                   text = text.replaceFirst('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', '').trim();
                                 }
