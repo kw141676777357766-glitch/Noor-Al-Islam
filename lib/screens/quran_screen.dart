@@ -489,10 +489,7 @@ class _QuranScreenState extends State<QuranScreen> {
 
   return ListView(
     children: [
-      // مسافة قبل الآيات
       const SizedBox(height: 16),
-
-      // الآيات
       Text.rich(
         TextSpan(
           children: surah!.ayahs.map((ayah) {
@@ -509,7 +506,7 @@ class _QuranScreenState extends State<QuranScreen> {
         ),
         textAlign: TextAlign.right,
         textDirection: TextDirection.rtl,
-      ],
-);
-}
-      }
+      ),
+    ],
+  );
+  }
