@@ -451,73 +451,69 @@ class _QuranScreenState extends State<QuranScreen> {
       ),
     );
   }
- Widget _buildQuranContent() {
-  if (isLoadingAyahs) {
-    return const Center(
-      child: CircularProgressIndicator(
-        color: Color(0xFFD4AF37),
-      ),
-    );
-  }
-
-  if (surah == null || surah!.ayahs.isEmpty) {
-    return const Center(
-      child: Text(
-        'تعذر تحميل آيات السورة',
-        style: TextStyle(
-          color: Colors.white,
-          fontFamily: 'Cairo',
-          fontSize: 16,
+  Widget _buildQuranContent() {
+    if (isLoadingAyahs) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFFD4AF37),
         ),
-      ),
-    );
-  }
+      );
+    }
 
-  // إظهار البسملة أعلى السورة، باستثناء الفاتحة والتوبة
-  final bool showBasmala =
-      widget.surahNumber != 1 &&
-      widget.surahNumber != 9;
-
-  return ListView(
-    children: [
-      const SizedBox(height: 16),
-
-      // البسملة الذهبية أعلى الآيات
-      if (showBasmala)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 20),
-          child: Text(
-            'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-            textAlign: TextAlign.center,
-            textDirection: TextDirection.rtl,
-            style: const TextStyle(
-              color: Color(0xFFD4AF37),
-              fontSize: 24,
-              height: 2,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Cairo',
-            ),
+    if (surah == null || surah!.ayahs.isEmpty) {
+      return const Center(
+        child: Text(
+          'تعذر تحميل آيات السورة',
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'Cairo',
+            fontSize: 16,
           ),
         ),
+      );
+    }
 
-      // عرض الآيات دون إضافة بسملة إلى نصوصها
-      Text.rich(
-        TextSpan(
-          children: surah!.ayahs.map((ayah) {
-            return TextSpan(
-              text: '${ayah.text} ﴿${ayah.number}﴾ ',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                height: 2.2,
+    final bool showBasmala =
+        widget.surahNumber != 1 && widget.surahNumber != 9;
+
+    return ListView(
+      children: [
+        const SizedBox(height: 16),
+        if (showBasmala)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 20),
+            child: Text(
+              'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.rtl,
+              style: TextStyle(
+                color: Color(0xFFD4AF37),
+                fontSize: 24,
+                height: 2,
+                fontWeight: FontWeight.bold,
                 fontFamily: 'Cairo',
               ),
-            );
-          }).toList(),
+            ),
+          ),
+        Text.rich(
+          TextSpan(
+            children: surah!.ayahs.map((ayah) {
+              return TextSpan(
+                text: '${ayah.text} ﴿${ayah.number}﴾ ',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  height: 2.2,
+                  fontFamily: 'Cairo',
+                ),
+              );
+            }).toList(),
+          ),
+          textAlign: TextAlign.right,
+          textDirection: TextDirection.rtl,
         ),
-        textAlign: TextAlign.right,
-        textDirection: TextDirection.rtl,
-      ),
-    ],
-  );
- } 
+      ],
+    );
+  }
+}
+
