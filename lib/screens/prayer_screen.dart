@@ -127,9 +127,7 @@ class _PrayerScreenState extends State<PrayerScreen> {
 
     try {
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
+        desiredAccuracy: LocationAccuracy.high,
       );
 
       latitude = position.latitude;
@@ -174,7 +172,7 @@ class _PrayerScreenState extends State<PrayerScreen> {
 
     setState(() {
       prayerTimes = calculated;
-      qiblaDirection = qibla.direction;
+      qiblaDirection = qibla;
       loading = false;
     });
   }
