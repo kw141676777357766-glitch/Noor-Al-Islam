@@ -16,22 +16,37 @@ jobs:
         with:
           flutter-version: "3.24.5"
           channel: stable
+          cache: true
 
       - name: Create Android platform files
         run: flutter create . --platforms=android --project-name=noor_islam
 
-      - name: Set Android minimum SDK
-        run: |
-          sed -i 's/minSdkVersion 19/minSdkVersion 21/g' android/app/build.gradle
-          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
-
-      - name: Add location permissions
+      - name: Configure Android
         run: |
           python - <<'PYTHON'
           from pathlib import Path
+          import re
 
-          p = Path("android/app/src/main/AndroidManifest.xml")
-          s = p.read_text()
+          gradle = Path("android/app/build.gradle")
+          s = gradle.read_text(encoding="utf-8")
+
+          s = re.sub(
+              r'compileSdk(?:Version)?\s+flutter\.compileSdkVersion',
+              'compileSdkVersion 35',
+              s
+          )
+
+          s = re.sub(
+              r'minSdk(?:Version)?\s+flutter\.minSdkVersion',
+              'minSdkVersion 21',
+              s
+          )
+
+          gradle.write_text(s, encoding="utf-8")
+          print("Android app Gradle configured.")
+
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          s = manifest.read_text(encoding="utf-8")
 
           permissions = [
               '    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>',
@@ -46,16 +61,51 @@ jobs:
 
           if missing:
               s = s[:pos] + "\n".join(missing) + "\n    " + s[pos:]
-              p.write_text(s)
+              manifest.write_text(s, encoding="utf-8")
 
-          print("Location permissions ready.")
+          print("Location permissions configured.")
+          PYTHON
+
+      - name: Pin Android Gradle Plugin
+        run: |
+          python - <<'PYTHON'
+          from pathlib import Path
+          import re
+
+          settings = Path("android/settings.gradle")
+
+          if settings.exists():
+              s = settings.read_text(encoding="utf-8")
+
+              s = re.sub(
+                  r"(id\s+['\"]com\.android\.application['\"]\s+version\s+['\"])[^'\"]+(['\"])",
+                  r"\g<1>8.1.4\2",
+                  s
+              )
+
+              s = re.sub(
+                  r"(id\s+['\"]org\.jetbrains\.kotlin\.android['\"]\s+version\s+['\"])[^'\"]+(['\"])",
+                  r"\g<1>1.9.22\2",
+                  s
+              )
+
+              settings.write_text(s, encoding="utf-8")
+
+          print("Android Gradle Plugin and Kotlin configured.")
           PYTHON
 
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Check resolved geolocator version
+        run: |
+          echo "=== pubspec.lock geolocator ==="
+          grep -n -A8 -B2 "geolocator_android:" pubspec.lock || true
+          echo "=== Flutter packages ==="
+          flutter pub deps | grep -E "geolocator|geolocator_android" || true
+
       - name: Build APK
-        run: flutter build apk --release
+        run: flutter build apk --release --no-tree-shake-icons
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
