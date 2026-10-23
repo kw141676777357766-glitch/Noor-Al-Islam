@@ -2,20 +2,19 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ "*" ]
+    branches: ["*"]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.x'
-          channel: 'stable'
+          flutter-version: "3.19.x"
+          channel: stable
 
       - name: Create Missing Platform Files
         run: flutter create . --platforms=android --project-name=noor_islam
@@ -24,6 +23,22 @@ jobs:
         run: |
           sed -i 's/minSdkVersion 19/minSdkVersion 21/g' android/app/build.gradle
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
+
+      - name: Update Kotlin Version
+        run: |
+          python - <<'PYTHON'
+          from pathlib import Path
+          import re
+
+          p = Path("android/build.gradle")
+          s = p.read_text()
+          pattern = r"ext\.kotlin_version\s*=\s*['\"][^'\"]+['\"]"
+          updated, count = re.subn(pattern, "ext.kotlin_version = '1.9.22'", s, count=1)
+          if count != 1:
+              raise SystemExit("Kotlin version declaration was not found")
+          p.write_text(updated)
+          print("Kotlin version updated to 1.9.22")
+          PYTHON
 
       - name: Install dependencies
         run: flutter pub get
