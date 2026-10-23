@@ -7,56 +7,48 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.19.x"
+          flutter-version: "3.24.5"
           channel: stable
 
-      - name: Create Missing Platform Files
+      - name: Create Android platform files
         run: flutter create . --platforms=android --project-name=noor_islam
 
-      - name: Update Android Min SDK Version
+      - name: Set Android minimum SDK
         run: |
           sed -i 's/minSdkVersion 19/minSdkVersion 21/g' android/app/build.gradle
           sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/g' android/app/build.gradle
 
-      - name: Update Kotlin Version
+      - name: Add location permissions
         run: |
           python - <<'PYTHON'
           from pathlib import Path
-          import re
 
-          settings = Path("android/settings.gradle")
-          build = Path("android/build.gradle")
+          p = Path("android/app/src/main/AndroidManifest.xml")
+          s = p.read_text()
 
-          pattern = r"(id\s+['\"]org\.jetbrains\.kotlin\.android['\"]\s+version\s+['\"])[^'\"]+(['\"])"
+          permissions = [
+              '    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>',
+              '    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>',
+          ]
 
-          if settings.exists():
-              content = settings.read_text()
-              updated, count = re.subn(pattern, r"\g<1>1.9.22\2", content, count=1)
-              if count:
-                  settings.write_text(updated)
-                  print("Kotlin updated in settings.gradle to 1.9.22")
-                  raise SystemExit(0)
+          pos = s.find("<application")
+          if pos < 0:
+              raise SystemExit("ERROR: application tag not found")
 
-          if build.exists():
-              content = build.read_text()
-              updated, count = re.subn(
-                  r"ext\.kotlin_version\s*=\s*['\"][^'\"]+['\"]",
-                  "ext.kotlin_version = '1.9.22'",
-                  content,
-                  count=1
-              )
-              if count:
-                  build.write_text(updated)
-                  print("Kotlin updated in build.gradle to 1.9.22")
-                  raise SystemExit(0)
+          missing = [x for x in permissions if x not in s]
 
-          raise SystemExit("ERROR: Kotlin version declaration was not found")
+          if missing:
+              s = s[:pos] + "\n".join(missing) + "\n    " + s[pos:]
+              p.write_text(s)
+
+          print("Location permissions ready.")
           PYTHON
 
       - name: Install dependencies
