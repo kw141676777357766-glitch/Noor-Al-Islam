@@ -19,7 +19,7 @@ dependencies:
   flutter_local_notifications: ^17.2.0
   http: ^1.2.2
   path_provider: ^2.1.4
-  geolocator: ^12.0.0
+  geolocator: 11.1.0
   adhan_dart: ^1.2.0
 
 flutter:
